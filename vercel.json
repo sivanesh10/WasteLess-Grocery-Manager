@@ -9,9 +9,6 @@
       }
     }
   ],
-    "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ],
   "env": {
     "NODE_ENV": "production"
   },
