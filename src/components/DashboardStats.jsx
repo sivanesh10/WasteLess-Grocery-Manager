@@ -3,7 +3,6 @@ import { useSpring, animated } from '@react-spring/web';
 import { db, auth } from './firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
-// Animated number component
 const AnimatedNumber = ({ number }) => {
   const { value } = useSpring({
     from: { value: 0 },
@@ -50,7 +49,6 @@ const DashboardStats = () => {
     return () => unsubscribe();
   }, []);
 
-  // Improved card style
   const cardStyle =
     'flex-1 min-w-[220px] max-w-sm flex flex-col justify-center items-center rounded-2xl p-6 text-white shadow-xl transition duration-300 ease-in-out hover:scale-[1.03] hover:shadow-2xl';
 

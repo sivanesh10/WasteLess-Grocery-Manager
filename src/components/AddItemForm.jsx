@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { QrReader } from 'react-qr-reader';
+import { QrReader } from '@blackbox-vision/react-qr-reader';
 import { toast } from 'react-hot-toast';
 import { auth, db } from './firebase';
 
