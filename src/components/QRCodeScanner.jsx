@@ -1,31 +1,25 @@
 import { useState } from 'react';
-import { QrReader } from '@blackbox-vision/react-qr-reader';
+import BarcodeScannerComponent from 'react-qr-barcode-scanner';
 
 const QRCodeScanner = ({ onScan }) => {
   const [error, setError] = useState('');
   const [scanned, setScanned] = useState(false);
 
-  const handleScan = (result) => {
-    if (result?.text && !scanned) {
-      setScanned(true);
-      onScan(result.text);
-    }
-  };
-
-  const handleError = (err) => {
-    console.error(err);
-    setError('Camera access error. Please check permissions.');
-  };
-
   return (
     <div className="w-full flex flex-col items-center">
       {error && <p className="text-red-500">{error}</p>}
       {!scanned ? (
-        <QrReader
-          constraints={{ facingMode: 'environment' }}
-          onResult={(result, error) => {
-            if (result) handleScan(result);
-            if (error) handleError(error);
+        <BarcodeScannerComponent
+          width={300}
+          height={300}
+          onUpdate={(err, result) => {
+            if (result && !scanned) {
+              setScanned(true);
+              onScan(result.text);
+            } else if (err) {
+              console.error(err);
+              setError('Camera error or no QR code detected');
+            }
           }}
           style={{ width: '100%' }}
         />
