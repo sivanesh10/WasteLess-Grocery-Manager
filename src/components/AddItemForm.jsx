@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { QrReader } from '@blackbox-vision/react-qr-reader';
 import { toast } from 'react-hot-toast';
 import { auth, db } from './firebase';
 
@@ -11,12 +10,7 @@ const AddItemForm = () => {
     'Fruits', 'Vegetables', 'Dairy', 'Meat', 'Snacks', 'Beverages', 'Others'
   ]);
   const [customCategory, setCustomCategory] = useState('');
-  const [showScanner, setShowScanner] = useState(false);
   const [showCustomInput, setShowCustomInput] = useState(false);
-
-  const scannedRef = useRef(false);
-  const scanTimeout = useRef(null);
-  const lastScannedDataRef = useRef('');
 
   useEffect(() => {
     const fetchCategory = async () => {
@@ -73,44 +67,6 @@ const AddItemForm = () => {
     setCustomCategory('');
     toast.success(`➕ "${customCategory}" added`);
   };
-
-  const handleQRScan = async (data) => {
-    if (!data || scannedRef.current || data === lastScannedDataRef.current) return;
-
-    scannedRef.current = true;
-    lastScannedDataRef.current = data;
-
-    const [name, quantity, scannedCategory, expiryDate] = data.split(',');
-
-    const currentUser = auth.currentUser;
-    if (!currentUser) return alert("⚠️ You must be logged in.");
-
-    const groceryData = {
-      name,
-      quantity: Number(quantity),
-      category: scannedCategory || category,
-      expiryDate,
-      userId: currentUser.uid,
-      createdAt: serverTimestamp(),
-    };
-
-    try {
-      await addDoc(collection(db, 'groceries'), groceryData);
-      toast.success(`📦 ${name} added via QR`);
-      setShowScanner(false);
-    } catch (err) {
-      toast.error('❌ Error adding scanned item.');
-      console.error(err.message);
-    }
-
-    scanTimeout.current = setTimeout(() => {
-      scannedRef.current = false;
-    }, 5000);
-  };
-
-  useEffect(() => {
-    return () => clearTimeout(scanTimeout.current);
-  }, []);
 
   return (
     <div className="min-h-screen w-full flex justify-center items-start px-4 py-8 sm:py-12 bg-orange-50 dark:bg-gray-900 transition-colors">
@@ -186,7 +142,6 @@ const AddItemForm = () => {
             className="w-full px-4 py-2 border border-orange-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-gray-200"
             required
           />
-
           <button
             type="submit"
             className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 rounded-lg shadow transition"
@@ -194,36 +149,6 @@ const AddItemForm = () => {
             ➕ Add Manually
           </button>
         </form>
-
-        {/* QR Scanner Button */}
-        <button
-          onClick={() => {
-            setShowScanner((prev) => {
-              if (prev) {
-                scannedRef.current = false;
-                lastScannedDataRef.current = '';
-              }
-              return !prev;
-            });
-          }}
-          className="w-full border border-orange-600 dark:border-orange-400 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-gray-600 font-medium py-2 rounded-lg transition"
-        >
-          {showScanner ? '📴 Close Camera' : '📷 Scan using Camera'}
-        </button>
-
-        {/* QR Scanner */}
-        {showScanner && (
-          <div className="w-full mt-4 rounded-lg overflow-hidden border-2 border-orange-400 dark:border-orange-500">
-            <QrReader
-              constraints={{ facingMode: 'environment' }}
-              onResult={(result, error) => {
-                if (!!result?.text) handleQRScan(result.text);
-                if (error) console.warn('📷 QR Error:', error.message);
-              }}
-              style={{ width: '100%' }}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
