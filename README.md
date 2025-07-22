@@ -16,9 +16,10 @@ Built with **React, Tailwind CSS, Firebase, and Spoonacular API**, WasteLess aim
 ---
 
 ## 📸 Screenshots  
-_(Add screenshots or a demo GIF here for better presentation.)_  
+
 Example:  
-![Dashboard Screenshot](./screenshots/dashboard.png)  
+![Dashboard Screenshot]  <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9b35590b-65dd-440b-b654-38dbf6d709f5" />
+
 
 ---
 
