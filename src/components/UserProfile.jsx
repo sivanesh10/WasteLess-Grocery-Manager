@@ -33,7 +33,7 @@ const UserProfile = ({ user }) => {
       await setDoc(userRef, {
         email: user.email,
         category: category,
-      }, { merge: true }); // ✅ Merge to avoid overwriting FCM tokens
+      }, { merge: true }); 
       setSaved(true);
     } catch (err) {
       console.error("Error saving user data:", err);

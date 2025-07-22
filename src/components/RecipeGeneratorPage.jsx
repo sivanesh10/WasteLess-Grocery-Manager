@@ -2,21 +2,28 @@ import { useEffect, useState } from 'react';
 import { db, auth } from './firebase';
 import axios from 'axios';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const RecipeGeneratorPage = () => {
   const [ingredients, setIngredients] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [expiredStatus, setExpiredStatus] = useState(''); // To store message for expired/all empty
+  const [expiredStatus, setExpiredStatus] = useState('');
 
+ 
   useEffect(() => {
-    const fetchIngredients = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) fetchIngredients(user.uid);
+    });
 
-      const q = query(collection(db, 'groceries'), where('userId', '==', user.uid));
+    return () => unsubscribeAuth();
+  }, []);
+
+  const fetchIngredients = async (userId) => {
+    try {
+      const q = query(collection(db, 'groceries'), where('userId', '==', userId));
       const snapshot = await getDocs(q);
-      const items = snapshot.docs.map(doc => doc.data());
+      const items = snapshot.docs.map((doc) => doc.data());
 
       if (!items.length) {
         setExpiredStatus('Your groceries list is empty.');
@@ -25,47 +32,58 @@ const RecipeGeneratorPage = () => {
       }
 
       const today = new Date();
+      today.setHours(0, 0, 0, 0); 
       const validItems = items
-        .filter(item => new Date(item.expiryDate) >= today) // Keep only non-expired
-        .map(item => item.name);
+        .filter((item) => new Date(item.expiryDate) >= today)
+        .map((item) => item.name);
 
-      if (validItems.length === 0) {
-        setExpiredStatus('All Items in Your Groceries were Expired.');
+      if (!validItems.length) {
+        setExpiredStatus('All Items in Your Groceries are expired.');
         setIngredients([]);
       } else {
         setExpiredStatus('');
         setIngredients(validItems);
       }
-    };
-
-    fetchIngredients();
-  }, []);
+    } catch (error) {
+      console.error('Error fetching ingredients:', error);
+      setExpiredStatus('Failed to fetch groceries.');
+    }
+  };
 
   const getRecipes = async () => {
     if (!ingredients.length) {
       alert(expiredStatus || 'No ingredients found.');
       return;
     }
-    setLoading(true);
 
-    const queryParams = new URLSearchParams({
-      ingredients: ingredients.join(','),
-      number: 10,
-      apiKey: process.env.REACT_APP_SPOONACULAR_API_KEY
-    });
+    setLoading(true);
+    setRecipes([]); 
 
     try {
-      const res = await axios.get(
-        `https://api.spoonacular.com/recipes/findByIngredients?${queryParams}`
+     
+      const { data } = await axios.get(
+        `https://api.spoonacular.com/recipes/findByIngredients`,
+        {
+          params: {
+            ingredients: ingredients.join(','),
+            number: 10,
+            apiKey: process.env.REACT_APP_SPOONACULAR_API_KEY,
+          },
+        }
       );
-      const detailed = await Promise.all(
-        res.data.map(recipe =>
-          axios.get(
-            `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${process.env.REACT_APP_SPOONACULAR_API_KEY}`
-          )
-        )
+
+     
+      const recipeIds = data.map((r) => r.id).join(',');
+
+    
+      const detailedRes = await axios.get(
+        `https://api.spoonacular.com/recipes/informationBulk`,
+        {
+          params: { ids: recipeIds, apiKey: process.env.REACT_APP_SPOONACULAR_API_KEY },
+        }
       );
-      setRecipes(detailed.map(r => r.data));
+
+      setRecipes(detailedRes.data);
     } catch (err) {
       console.error('❌ Recipe fetch error:', err);
       alert('❌ Failed to fetch recipes. Check API key or quota.');
@@ -83,9 +101,7 @@ const RecipeGeneratorPage = () => {
 
         {/* Expired/Empty Status */}
         {expiredStatus && (
-          <p className="text-center text-red-500 font-semibold">
-            {expiredStatus}
-          </p>
+          <p className="text-center text-red-500 font-semibold">{expiredStatus}</p>
         )}
 
         {/* Generate Recipes Button */}
@@ -107,8 +123,11 @@ const RecipeGeneratorPage = () => {
           </div>
         ) : recipes.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
-            {recipes.map(recipe => (
-              <div key={recipe.id} className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col">
+            {recipes.map((recipe) => (
+              <div
+                key={recipe.id}
+                className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col"
+              >
                 <img
                   src={recipe.image}
                   alt={recipe.title}
@@ -133,9 +152,7 @@ const RecipeGeneratorPage = () => {
         ) : (
           !loading &&
           !expiredStatus && (
-            <p className="text-center text-gray-600 mt-8">
-              No recipes generated yet.
-            </p>
+            <p className="text-center text-gray-600 mt-8">No recipes generated yet.</p>
           )
         )}
       </div>

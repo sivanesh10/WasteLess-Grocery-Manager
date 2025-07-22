@@ -75,7 +75,9 @@ const DashboardStats = () => {
         <div className={`${cardStyle} bg-gradient-to-br from-rose-500 to-pink-600`}>
           <p className="text-lg font-medium mb-2">❌ Expired Items</p>
           <AnimatedNumber number={stats.expired} />
+        
         </div>
+
       </div>
     </div>
   );
