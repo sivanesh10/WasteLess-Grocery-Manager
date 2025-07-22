@@ -28,7 +28,7 @@ Example:
 - **Recipe Generator** – Suggests recipes based on your ingredients.  
 - **Smart Dashboard** – View statistics (used, expired, saved items).  
 - **Download Grocery List** – Export as PDF/CSV.  
-- **Push Notifications** – Timely expiry reminders (via FCM).  
+- **Push Notifications** – Timely expiry reminders (via FCM). {Note: Future Update}  
 - **Google & GitHub Login** – Secure authentication with Firebase.  
 - **Planned Feature:** QR/OCR-based item addition.
 
