@@ -1,6 +1,5 @@
 # 🛒 WasteLess – Expiry-Based Smart Grocery Manager
 
-![Netlify Status](https://api.netlify.com/api/v1/badges/YOUR_NETLIFY_BADGE/deploy-status)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![React](https://img.shields.io/badge/React-18-blue?logo=react)
 ![Firebase](https://img.shields.io/badge/Firebase-Backend-orange?logo=firebase)
